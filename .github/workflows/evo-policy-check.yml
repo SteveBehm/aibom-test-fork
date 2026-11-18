@@ -1,0 +1,29 @@
+name: Evo policy check
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  aibom-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Snyk CLI
+        uses: snyk/actions/setup@master
+        with:
+          snyk-version: latest   # must be v1.1304.0 or later
+
+      - name: Evo policy test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: snyk aibom test --severity-threshold=critical --json-file-output=aibom-results.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aibom-results
+          path: aibom-results.json
